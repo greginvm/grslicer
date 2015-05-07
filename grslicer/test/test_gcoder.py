@@ -18,7 +18,6 @@ class TestGcoder(TestCase):
 
         print 'G-code file:', self.gcode
 
-
     def test_gcode(self):
         # TODO: add tests
         print 'testing'
