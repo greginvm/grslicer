@@ -1,3 +1,6 @@
+import json
+
+
 class SettingsItem(object):
     TYPE = str
 
@@ -78,8 +81,10 @@ DEFAULT_SETTINGS = [
      ),
     ('Printer',
      [
-         RangeSettingInt('printPlateWidth', 'Plate width', 200, low=0, high=500, step=1, description='Plate width', arg='w'),
-         RangeSettingInt('printPlateLength', 'Plate length', 200, low=0, high=500, step=1, description='Plate length', arg='l'),
+         RangeSettingInt('printPlateWidth', 'Plate width', 200, low=0, high=500, step=1, description='Plate width',
+                         arg='w'),
+         RangeSettingInt('printPlateLength', 'Plate length', 200, low=0, high=500, step=1, description='Plate length',
+                         arg='l'),
          RangeSettingFloat('nozzleDiameter', 'Nozzle diameter', default=0.35, low=0.1, high=1.0, step=0.01,
                            description='Nozzle diameter', arg='nd'),
          RangeSettingFloat('filamentDiameter', 'Filament diameter', default=3.0, low=0.1, high=5.0, step=0.01,
@@ -92,7 +97,8 @@ DEFAULT_SETTINGS = [
                            description='Layer height', arg='lh'),
          RangeSettingFloat('extrusionWidth', 'Exstrusion width', 0.35, low=0.1, high=1.0, step=0.01,
                            description='Extrusion width', arg='ew'),
-         RangeSettingFloat('correctionZ', 'Z correction', 0, low=0, high=10, step=0.01, description='Z correction', arg='zc'),
+         RangeSettingFloat('correctionZ', 'Z correction', 0, low=0, high=10, step=0.01, description='Z correction',
+                           arg='zc'),
      ]
      ),
     ('Infill',
@@ -108,7 +114,8 @@ DEFAULT_SETTINGS = [
                          advanced=True, arg='omnrl'),
          # infill
 
-         BoolSetting('linesEnable', 'Enable line infill', default=True, description='Enable lines inner pattern', arg='eli'),
+         BoolSetting('linesEnable', 'Enable line infill', default=True, description='Enable lines inner pattern',
+                     arg='eli'),
          # infll
          # extra spacing between tvo extrusion lines
          RangeSettingFloat('linesDelta', 'Lines delta', default=0.2, low=0.0, high=5.0, step=0.1,
@@ -207,14 +214,17 @@ DEFAULT_SETTINGS_CONFIG = [(group[0], [prop.to_dict() for prop in group[1]]) for
 
 
 class SlicerSettings(object):
-    def __init__(self, settings=None):
+    def __init__(self, file_name=None, flat_settings_dict=None):
         self._settings = {}
 
         for group_key, prop in settings_iter():
             self._settings[prop.name] = prop.convert(prop.default)
 
-        if settings:
-            self.load(settings, '{key}')
+        if file_name is not None:
+            self.load_file(file_name)
+
+        if flat_settings_dict:
+            self.from_flat_dict(flat_settings_dict)
 
     def __getattr__(self, key):
         return self[key]
@@ -246,6 +256,24 @@ class SlicerSettings(object):
             d[group_key].setdefault(prop.name, {})
             d[group_key][prop.name] = self[prop.name]
         return d
+
+    def from_dict(self, d):
+        for group_key, group in d.items():
+            for prop_name, value in group.items():
+                self[prop_name] = value
+
+    def from_flat_dict(self, d):
+        self.load(d, '{key}')
+
+    def load_file(self, file_name):
+        with open(file_name) as fs:
+            d = json.load(fs)
+
+        self.from_dict(d)
+
+    def write_file(self, file_name):
+        with open(file_name, mode='w') as fs:
+            json.dump(self.to_dict(), fs, indent=4)
 
     def __repr__(self):
         return self._settings.__repr__()

@@ -5,6 +5,7 @@ from grslicer.model import Layer, LayeredModel
 from grslicer.util.np import np_range, to_ndarray
 from grslicer.util import cynp
 from grslicer.patterns.infill import fill_layer
+from grslicer.util.progress import progress_log
 
 
 def slice_model(tm, settings):
@@ -46,12 +47,14 @@ class FixedLayerHeightSlicer(object):
                     if h1 < h <= h2:
                         self._edge_map.setdefault(h, set()).add(edge.mxid)
 
-    def slice(self):
+    @progress_log('Slicing model with fixed layer heights')
+    def slice(self, progress):
         self._init_slicing_positions()
+
+        progress.set_size(len(self._slicing_positions))
+
         self._init_edge_height_map()
 
-        # TODO: slicing positions is already sorted, all heights should be in the
-        # map, but I am not sure if that is true
         for i, h in enumerate(sorted(self._edge_map.keys())):
 
             contours = []
@@ -95,6 +98,10 @@ class FixedLayerHeightSlicer(object):
 
             if contours:
                 self.add_layer(contours, h, i)
+
+            progress.inc()
+
+        progress.done()
 
     def add_layer(self, contours, height, seq_nr):
         layer = Layer(self.model, height, seq_nr)

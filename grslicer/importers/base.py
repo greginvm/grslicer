@@ -1,3 +1,6 @@
+from grslicer.util.progress import progress_log
+
+
 class ModelImporter(object):
     """
         Interface for importers
@@ -12,5 +15,6 @@ class ModelImporter(object):
     def can_import(contents):
         return False
 
-    def import_contents(self):
+    @progress_log('Importing file contents')
+    def import_contents(self, progress):
         pass

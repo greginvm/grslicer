@@ -60,7 +60,7 @@ TEST_SETTINGS = {
 
 
 def get_test_settings():
-    return SlicerSettings(TEST_SETTINGS)
+    return SlicerSettings(flat_settings_dict=TEST_SETTINGS)
 
 
 TEST_FILE_CUBE = 'data/25mm_cube_bin.stl'
